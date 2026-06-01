@@ -2,19 +2,13 @@
 // Persistent dashboard top bar + bottom tab bar.
 // Drop this on any page with:
 //     <script src="topbar.js" defer></script>
-// It self-injects HTML + CSS, reads progress from localStorage,
-// and renders the water +1 button in the top bar plus the
-// Main/Health/Fitness bottom tabs. Skips chrome on finance.html
-// and inside iframes (so the water tracker can embed cleanly).
 // =============================================================
 (function () {
   'use strict';
 
-  // -------- Supabase config (replace with your own project URL + publishable key) --------
   const TOPBAR_SUPABASE_URL = 'https://asqblcmunbfsjzwftthw.supabase.co';
   const TOPBAR_SUPABASE_KEY = 'sb_publishable_d_Ota1l5oiDn5u2VK8SXig_SYxf3Lvn';
 
-  // -------- CSS --------
   const css = `
 .topbar {
   position: sticky; top: 0; z-index: 40;
@@ -23,7 +17,7 @@
   padding: max(10px, env(safe-area-inset-top)) 14px 8px;
   background: #0a0a0b;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
+  font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 .topbar-water-wrap { display: flex; align-items: stretch; }
 .topbar-water-pill {
@@ -58,7 +52,7 @@
   width: 44px;
   border: 1px solid rgba(125, 211, 252, 0.16);
   background: linear-gradient(180deg, rgba(125, 211, 252, 0.28), rgba(110, 231, 183, 0.28));
-  color: #FFFFFF; font-family: inherit;
+  color: #FFFFFF; font-family: 'Manrope', sans-serif;
   font-size: 20px; font-weight: 700; line-height: 1;
   cursor: pointer; border-radius: 0 12px 12px 0;
   -webkit-tap-highlight-color: transparent;
@@ -78,38 +72,37 @@
   transition: background 0.15s;
 }
 .topbar-finance-btn:hover { background: rgba(255, 255, 255, 0.08); }
-.topbar-finance-icon {
-  font-size: 20px; line-height: 1;
-  filter: grayscale(100%) brightness(1.4); opacity: 0.85;
+.topbar-finance-label {
+  font-size: 10px; font-weight: 800; letter-spacing: 0.12em;
+  color: rgba(255, 255, 255, 0.65); text-transform: uppercase;
+  font-family: 'Manrope', sans-serif;
 }
 .bottombar {
   position: fixed; bottom: 0; left: 0; right: 0; z-index: 40;
   display: flex; justify-content: space-around; align-items: stretch;
-  padding: 6px 0 calc(6px + env(safe-area-inset-bottom));
   background: #0a0a0b;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
-  font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
+  font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+  padding-bottom: env(safe-area-inset-bottom);
 }
 .bottombar-tab {
   flex: 1;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 3px; padding: 6px 0 4px; text-decoration: none;
-  color: rgba(255, 255, 255, 0.45);
-  font-size: 10px; font-weight: 600; letter-spacing: 0.04em;
-  -webkit-tap-highlight-color: transparent; transition: color 0.15s;
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px 0;
+  text-decoration: none;
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+  -webkit-tap-highlight-color: transparent;
+  border-top: 2px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
 }
-.bottombar-tab-icon {
-  font-size: 24px; line-height: 1;
-  filter: grayscale(100%) brightness(1.2); opacity: 0.55;
-  transition: opacity 0.15s, filter 0.15s, transform 0.10s;
+.bottombar-tab.active {
+  color: #FAFAFA;
+  border-top-color: rgba(255, 255, 255, 0.85);
 }
-.bottombar-tab.active { color: #FAFAFA; }
-.bottombar-tab.active .bottombar-tab-icon {
-  filter: grayscale(100%) brightness(1.6); opacity: 1;
-}
-.bottombar-tab:active .bottombar-tab-icon { transform: scale(0.92); }
+.bottombar-tab:active { opacity: 0.6; }
 body.has-bottombar {
-  padding-bottom: calc(72px + env(safe-area-inset-bottom)) !important;
+  padding-bottom: calc(56px + env(safe-area-inset-bottom)) !important;
 }
 @media (max-width: 480px) {
   .topbar { padding-left: 10px; padding-right: 10px; gap: 6px; }
@@ -117,9 +110,6 @@ body.has-bottombar {
   .topbar-pill-count { font-size: 12px; }
   .topbar-water-add { width: 40px; font-size: 18px; }
   .topbar-finance-btn { width: 40px; height: 38px; }
-  .topbar-finance-icon { font-size: 18px; }
-  .bottombar-tab-icon { font-size: 22px; }
-  .bottombar-tab { font-size: 10px; }
 }
 html, body { -webkit-text-size-adjust: 100%; }
 @media (max-width: 768px) {
@@ -151,28 +141,22 @@ body.topbar-modal-open { overflow: hidden; touch-action: none; }
   const topbarHtml = `
 <header class="topbar" id="topbar" role="navigation" aria-label="Quick actions">
   <div class="topbar-water-wrap">
-    <a href="health.html#water" class="topbar-water-pill" id="topbarWater" aria-label="Water progress">
+    <a href="po-water.html" class="topbar-water-pill" id="topbarWater" aria-label="Water progress">
       <span class="topbar-pill-dot"></span>
       <span class="topbar-pill-count" id="topbarWaterCount">0/0</span>
     </a>
     <button class="topbar-water-add" id="topbarWaterAdd" aria-label="Log one drink" type="button">+</button>
   </div>
   <a href="finance.html" class="topbar-finance-btn" id="topbarFinance" aria-label="Finance">
-    <span class="topbar-finance-icon">📊</span>
+    <span class="topbar-finance-label">FIN</span>
   </a>
 </header>`;
 
   const bottombarHtml = `
 <nav class="bottombar" id="bottombar" role="navigation" aria-label="Main tabs">
-  <a href="index.html" class="bottombar-tab" data-page="main">
-    <span class="bottombar-tab-icon">🏠</span><span>Main</span>
-  </a>
-  <a href="health.html" class="bottombar-tab" data-page="health">
-    <span class="bottombar-tab-icon">💊</span><span>Health</span>
-  </a>
-  <a href="gym.html" class="bottombar-tab" data-page="fitness">
-    <span class="bottombar-tab-icon">💪</span><span>Fitness</span>
-  </a>
+  <a href="index.html" class="bottombar-tab" data-page="main">Main</a>
+  <a href="health.html" class="bottombar-tab" data-page="health">Health</a>
+  <a href="gym.html" class="bottombar-tab" data-page="fitness">Fitness</a>
 </nav>`;
 
   function isFinancePage() {
