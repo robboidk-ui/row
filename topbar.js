@@ -157,6 +157,7 @@ body.topbar-modal-open { overflow: hidden; touch-action: none; }
   <a href="index.html" class="bottombar-tab" data-page="main">Main</a>
   <a href="health.html" class="bottombar-tab" data-page="health">Health</a>
   <a href="gym.html" class="bottombar-tab" data-page="fitness">Fitness</a>
+  <a href="finance.html" class="bottombar-tab" data-page="finance">Finance</a>
 </nav>`;
 
   function isFinancePage() {

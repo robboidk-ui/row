@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#050506">
+<meta name="color-scheme" content="dark">
+<title>Goal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #050506;
+  --bg-card: rgba(255,255,255,0.04);
+  --bg-input: rgba(0,0,0,0.28);
+  --bg-input-focus: rgba(0,0,0,0.38);
+  --border: rgba(255,255,255,0.06);
+  --border-strong: rgba(255,255,255,0.12);
+  --text-primary: #FAFAFA;
+  --text-secondary: #B8B6B0;
+  --text-tertiary: #76746E;
+  --accent: #1D9E75;
+  --font: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  background: var(--bg); color: var(--text-secondary);
+  font-family: var(--font); font-size: 15px; line-height: 1.5;
+  -webkit-font-smoothing: antialiased; min-height: 100vh;
+}
+body::before {
+  content: ''; position: fixed; inset: 0;
+  background: radial-gradient(60% 50% at 70% 15%, rgba(29,158,117,0.10) 0%, transparent 60%);
+  filter: blur(40px); pointer-events: none; z-index: 0;
+}
+body::after {
+  content: ''; position: fixed; inset: 0;
+  background-image: radial-gradient(rgba(255,255,255,0.014) 1px, transparent 1px);
+  background-size: 3px 3px; pointer-events: none; z-index: 1;
+}
+main { position: relative; z-index: 2; max-width: 720px; margin: 0 auto; padding: 0 20px 100px; }
+
+/* Header */
+.page-header {
+  display: flex; align-items: center; gap: 14px;
+  padding: max(18px, env(safe-area-inset-top)) 0 18px;
+  margin-bottom: 4px;
+}
+.back-btn {
+  display: flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px;
+  border: 1px solid var(--border-strong);
+  background: rgba(255,255,255,0.04);
+  border-radius: 10px; cursor: pointer;
+  color: var(--text-secondary); font-size: 16px;
+  text-decoration: none; flex-shrink: 0;
+  transition: background 0.15s;
+}
+.back-btn:hover { background: rgba(255,255,255,0.08); }
+.page-header-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--text-tertiary);
+}
+
+.goal-heading {
+  font-size: 26px; font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.02em; line-height: 1.2;
+  margin-bottom: 28px;
+}
+
+.section { margin-bottom: 24px; }
+.section-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.16em;
+  text-transform: uppercase; color: var(--text-tertiary);
+  margin-bottom: 8px;
+}
+.card {
+  background: var(--bg-card);
+  border-radius: 14px; padding: 18px 20px;
+  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+.input {
+  font-size: 14px; padding: 10px 12px;
+  border-radius: 10px; border: 1px solid var(--border-strong);
+  background: var(--bg-input); color: var(--text-primary);
+  font-family: var(--font); width: 100%;
+  transition: border-color 0.18s, background 0.18s;
+}
+.input::placeholder { color: var(--text-tertiary); }
+.input:focus { outline: none; border-color: rgba(255,255,255,0.35); background: var(--bg-input-focus); }
+textarea.input { resize: none; min-height: 80px; line-height: 1.6; }
+
+/* Steps */
+.steps-list { list-style: none; margin: 0 0 12px; padding: 0; }
+.step-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.step-item:last-child { border-bottom: none; }
+.step-num {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.10);
+  font-size: 10px; font-weight: 800; color: var(--text-tertiary);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-top: 1px;
+}
+.step-text { flex: 1; font-size: 14px; color: var(--text-primary); font-weight: 500; }
+.step-del {
+  background: transparent; border: none; color: var(--text-tertiary);
+  font-size: 16px; cursor: pointer; padding: 0 4px; line-height: 1;
+  opacity: 0.6; transition: opacity 0.15s, color 0.15s;
+}
+.step-del:hover { opacity: 1; color: #FF6B6B; }
+.step-empty { font-size: 13px; color: var(--text-tertiary); padding: 4px 0 8px; }
+
+.add-step-row { display: flex; gap: 8px; }
+.add-step-row .input { flex: 1; }
+
+/* Claude button */
+.claude-btn {
+  width: 100%; padding: 13px;
+  border-radius: 12px;
+  border: 1px solid rgba(29,158,117,0.4);
+  background: rgba(29,158,117,0.10);
+  color: #6BE3A4;
+  font-family: var(--font); font-size: 14px; font-weight: 700;
+  cursor: pointer; letter-spacing: 0.01em;
+  transition: background 0.15s, transform 0.1s;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.claude-btn:hover { background: rgba(29,158,117,0.18); }
+.claude-btn:active { transform: scale(0.98); }
+.claude-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+.claude-result {
+  margin-top: 14px;
+  font-size: 13px; line-height: 1.7;
+  color: var(--text-secondary);
+  white-space: pre-wrap;
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+  display: none;
+}
+.claude-result.visible { display: block; }
+
+/* Delete goal */
+.danger-btn {
+  width: 100%; padding: 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(239,68,68,0.25);
+  background: transparent;
+  color: rgba(239,68,68,0.7);
+  font-family: var(--font); font-size: 13px; font-weight: 700;
+  cursor: pointer; transition: background 0.15s;
+}
+.danger-btn:hover { background: rgba(239,68,68,0.08); }
+
+@media (max-width: 480px) {
+  main { padding: 0 14px 100px; }
+  .goal-heading { font-size: 22px; }
+}
+</style>
+</head>
+<body>
+<main>
+  <div class="page-header">
+    <a href="index.html" class="back-btn">←</a>
+    <div class="page-header-label">Goals This Year</div>
+  </div>
+
+  <div class="goal-heading" id="goalHeading">Loading…</div>
+
+  <!-- WHY -->
+  <div class="section">
+    <div class="section-label">Why this matters</div>
+    <div class="card">
+      <textarea class="input" id="whyInput" placeholder="What will achieving this goal mean for you? Why is it important?"></textarea>
+    </div>
+  </div>
+
+  <!-- STEPS -->
+  <div class="section">
+    <div class="section-label">Steps to get there</div>
+    <div class="card">
+      <ul class="steps-list" id="stepsList"></ul>
+      <div class="add-step-row">
+        <input class="input" id="stepInput" type="text" placeholder="Add a step…" autocomplete="off">
+        <button class="back-btn" id="addStepBtn" style="width:auto;padding:0 14px;font-size:13px;font-weight:700;color:var(--text-primary);">+ Add</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TIMELINE -->
+  <div class="section">
+    <div class="section-label">Timeline</div>
+    <div class="card">
+      <textarea class="input" id="timelineInput" placeholder="When do you want to achieve this? What are the key milestones along the way?"></textarea>
+    </div>
+  </div>
+
+  <!-- NOTES -->
+  <div class="section">
+    <div class="section-label">Notes</div>
+    <div class="card">
+      <textarea class="input" id="notesInput" placeholder="Anything else — habits to build, obstacles to prepare for, people who can help…"></textarea>
+    </div>
+  </div>
+
+  <!-- CLAUDE -->
+  <div class="section">
+    <div class="section-label">AI Framework</div>
+    <div class="card">
+      <button class="claude-btn" id="claudeBtn">
+        <span>Generate framework with Claude</span>
+      </button>
+      <div class="claude-result" id="claudeResult"></div>
+    </div>
+  </div>
+
+  <!-- DELETE -->
+  <div class="section">
+    <button class="danger-btn" id="deleteGoalBtn">Delete this goal</button>
+  </div>
+</main>
+
+<script>
+(() => {
+  'use strict';
+
+  const $ = id => document.getElementById(id);
+  const params = new URLSearchParams(window.location.search);
+  const goalId = params.get('id');
+
+  function getGoals() { try { return JSON.parse(localStorage.getItem('goals:yearly')) || []; } catch { return []; } }
+  function saveGoals(g) { localStorage.setItem('goals:yearly', JSON.stringify(g)); }
+  function getGoal() { return getGoals().find(g => g.id === goalId) || null; }
+  function updateGoal(changes) {
+    const goals = getGoals();
+    const i = goals.findIndex(g => g.id === goalId);
+    if (i < 0) return;
+    goals[i] = Object.assign(goals[i], changes);
+    saveGoals(goals);
+  }
+
+  const goal = getGoal();
+  if (!goal) {
+    $('goalHeading').textContent = 'Goal not found';
+    document.title = 'Goal not found';
+  } else {
+    document.title = goal.text;
+    $('goalHeading').textContent = goal.text;
+    const fw = goal.framework || {};
+    if (fw.why) $('whyInput').value = fw.why;
+    if (fw.timeline) $('timelineInput').value = fw.timeline;
+    if (fw.notes) $('notesInput').value = fw.notes;
+    renderSteps(fw.steps || []);
+  }
+
+  // Auto-save text fields
+  function autoSave(id, fwKey) {
+    $(id).addEventListener('input', () => {
+      const g = getGoal();
+      if (!g) return;
+      const fw = g.framework || {};
+      fw[fwKey] = $(id).value;
+      updateGoal({ framework: fw });
+    });
+  }
+  autoSave('whyInput', 'why');
+  autoSave('timelineInput', 'timeline');
+  autoSave('notesInput', 'notes');
+
+  // Steps
+  function getSteps() { const g = getGoal(); return (g && g.framework && g.framework.steps) || []; }
+  function saveSteps(steps) {
+    const g = getGoal();
+    if (!g) return;
+    const fw = g.framework || {};
+    fw.steps = steps;
+    updateGoal({ framework: fw });
+  }
+  function renderSteps(steps) {
+    const list = $('stepsList');
+    if (!steps.length) {
+      list.innerHTML = '<li class="step-empty">No steps yet — add one below or generate with Claude.</li>';
+      return;
+    }
+    list.innerHTML = steps.map((s, i) => `
+      <li class="step-item">
+        <span class="step-num">${i + 1}</span>
+        <span class="step-text">${esc(s)}</span>
+        <button class="step-del" data-i="${i}" aria-label="Remove step">×</button>
+      </li>`).join('');
+    list.querySelectorAll('.step-del').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const steps = getSteps();
+        steps.splice(+btn.dataset.i, 1);
+        saveSteps(steps);
+        renderSteps(steps);
+      });
+    });
+  }
+  $('addStepBtn').addEventListener('click', () => {
+    const inp = $('stepInput');
+    const text = inp.value.trim();
+    if (!text) return;
+    const steps = getSteps();
+    steps.push(text);
+    saveSteps(steps);
+    renderSteps(steps);
+    inp.value = '';
+    inp.focus();
+  });
+  $('stepInput').addEventListener('keydown', e => { if (e.key === 'Enter') $('addStepBtn').click(); });
+
+  // Claude generation
+  $('claudeBtn').addEventListener('click', async () => {
+    if (!goal) return;
+    const btn = $('claudeBtn');
+    const result = $('claudeResult');
+    btn.disabled = true;
+    btn.querySelector('span').textContent = 'Generating…';
+    result.classList.remove('visible');
+
+    const why = $('whyInput').value.trim();
+    const prompt = `Create a practical, actionable framework to achieve this goal: "${goal.text}"${why ? `\n\nContext/motivation: ${why}` : ''}
+
+Provide:
+1. A clear breakdown of 5-7 concrete steps
+2. A realistic timeline with milestones
+3. Key habits to build daily/weekly
+4. Potential obstacles and how to overcome them
+5. How to measure progress
+
+Keep it specific, motivating, and achievable.`;
+
+    try {
+      const resp = await fetch('/api/claude', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-6',
+          max_tokens: 1024,
+          messages: [{ role: 'user', content: prompt }]
+        })
+      });
+      const data = await resp.json();
+      if (data.error) throw new Error(data.error.message || 'API error');
+      const text = data.content && data.content[0] && data.content[0].text;
+      if (!text) throw new Error('Empty response');
+      result.textContent = text;
+      result.classList.add('visible');
+      const fw = (getGoal() || {}).framework || {};
+      fw.claudeFramework = text;
+      updateGoal({ framework: fw });
+    } catch (err) {
+      result.textContent = 'Error: ' + err.message + '\n\nMake sure ANTHROPIC_API_KEY is set in your Vercel environment variables.';
+      result.classList.add('visible');
+    } finally {
+      btn.disabled = false;
+      btn.querySelector('span').textContent = 'Generate framework with Claude';
+    }
+  });
+
+  // Delete goal
+  $('deleteGoalBtn').addEventListener('click', () => {
+    if (!confirm('Delete this goal?')) return;
+    const goals = getGoals().filter(g => g.id !== goalId);
+    saveGoals(goals);
+    window.location.href = 'index.html';
+  });
+
+  function esc(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+})();
+</script>
+</body>
+</html>

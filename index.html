@@ -597,6 +597,29 @@ body::after {
   .gm-card { padding: 16px; }
   .gm-progress-num { font-size: 36px; }
 }
+
+/* ===== Goals This Year ===== */
+.yearly-list { margin-bottom: 12px; }
+.yearly-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.05);
+  cursor: pointer;
+  transition: background 0.15s;
+  text-decoration: none;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+.yearly-item:hover { background: rgba(255,255,255,0.07); }
+.yearly-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: rgba(255,255,255,0.35); flex-shrink: 0;
+}
+.yearly-text { flex: 1; font-size: 14px; font-weight: 600; line-height: 1.35; }
+.yearly-arrow { color: var(--text-tertiary); font-size: 13px; flex-shrink: 0; }
+.yearly-empty { font-size: 13px; color: var(--text-tertiary); padding: 4px 2px 12px; }
 </style>
 </head>
 <body>
@@ -639,7 +662,18 @@ body::after {
     <div class="day-ring-text">
       <div class="day-ring-status"    id="dayRingStatus">Loading…</div>
       <div class="day-ring-remaining" id="dayRingRemaining">—</div>
-      <div class="day-ring-hours">8:00 AM – 12:00 AM</div>
+      <div class="day-ring-hours">6:00 AM – 10:00 PM</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Goals This Year</div>
+    <div class="gm-card" id="yearlyCard">
+      <div class="yearly-list" id="yearlyList"></div>
+      <div class="goal-input-wrap gm-input-wrap">
+        <input id="yearlyInput" class="gm-input" type="text" placeholder="Add a goal for this year…" autocomplete="off">
+        <button type="button" id="yearlyAddBtn" class="gm-add">+ Add</button>
+      </div>
     </div>
   </div>
 
@@ -1307,8 +1341,50 @@ body::after {
 
   // Re-render when storage changes from another tab (or our bridged parent).
   window.addEventListener('storage', () => {
-    loadToday(); loadTomorrow(); renderStreak();
+    loadToday(); loadTomorrow(); renderStreak(); renderYearlyGoals();
   });
+})();
+
+// ===== Goals This Year =====
+(function () {
+  function esc(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function getGoals() { try { return JSON.parse(localStorage.getItem('goals:yearly')) || []; } catch { return []; } }
+  function saveGoals(g) { localStorage.setItem('goals:yearly', JSON.stringify(g)); }
+
+  function renderYearlyGoals() {
+    const goals = getGoals();
+    const el = document.getElementById('yearlyList');
+    if (!el) return;
+    if (goals.length === 0) {
+      el.innerHTML = '<div class="yearly-empty">No yearly goals yet — add one below.</div>';
+      return;
+    }
+    el.innerHTML = goals.map(g =>
+      `<a href="goal-detail.html?id=${encodeURIComponent(g.id)}" class="yearly-item">
+        <span class="yearly-dot"></span>
+        <span class="yearly-text">${esc(g.text)}</span>
+        <span class="yearly-arrow">→</span>
+      </a>`
+    ).join('');
+  }
+
+  document.getElementById('yearlyAddBtn').addEventListener('click', () => {
+    const inp = document.getElementById('yearlyInput');
+    const text = inp.value.trim();
+    if (!text) return;
+    const goals = getGoals();
+    goals.push({ id: Date.now().toString(), text, createdAt: new Date().toISOString() });
+    saveGoals(goals);
+    inp.value = '';
+    renderYearlyGoals();
+  });
+
+  document.getElementById('yearlyInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('yearlyAddBtn').click();
+  });
+
+  window.renderYearlyGoals = renderYearlyGoals;
+  renderYearlyGoals();
 })();
 </script>
 <script>
